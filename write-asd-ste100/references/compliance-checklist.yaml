@@ -1,0 +1,237 @@
+schema_version: 1
+standard:
+  title: ASD-STE100 Simplified Technical English
+  issue: 9
+  issue_date: 2025-01-15
+  local_file: asd-ste100-issue-9.pdf
+  sha256: d1f4ea9e7cd6e46b47aa9057209f99e78c0e9cfc4e27a5b07895b05c1a166431
+instructions:
+  - Use each item only as an index into the controlling PDF.
+  - Read the complete cited rule and all applicable exceptions before recording a result.
+  - Check NOT APPLICABLE only after the content type and context show that the rule does not apply.
+rule_checks:
+  - id: rule-1.1
+    applies_to: all
+    check: Confirm that each word is a dictionary-approved word, approved technical noun, or approved technical verb.
+    source: ASD-STE100 Issue 9, Rule 1.1, page 1-1-2
+  - id: rule-1.2
+    applies_to: all
+    check: Confirm that each dictionary word uses only its approved part of speech.
+    source: ASD-STE100 Issue 9, Rule 1.2, pages 1-1-2 through 1-1-3
+  - id: rule-1.3
+    applies_to: all
+    check: Confirm that each approved word uses only an approved dictionary meaning.
+    source: ASD-STE100 Issue 9, Rule 1.3, page 1-1-4
+  - id: rule-1.4
+    applies_to: all
+    check: Confirm that verbs and adjectives use only forms approved by the dictionary.
+    source: ASD-STE100 Issue 9, Rule 1.4, pages 1-1-4 through 1-1-5
+  - id: rule-1.5
+    applies_to: all
+    check: Confirm that each technical noun belongs to a permitted technical-noun category.
+    source: ASD-STE100 Issue 9, Rule 1.5, pages 1-1-5 through 1-1-12
+  - id: rule-1.6
+    applies_to: all
+    check: Confirm that a non-dictionary word is used only as a technical noun or part of one.
+    source: ASD-STE100 Issue 9, Rule 1.6, page 1-1-13
+  - id: rule-1.7
+    applies_to: all
+    check: Confirm that technical nouns are not used as verbs.
+    source: ASD-STE100 Issue 9, Rule 1.7, page 1-1-13
+  - id: rule-1.8
+    applies_to: all
+    check: Confirm that each technical noun has company, industry, or subject-field approval.
+    source: ASD-STE100 Issue 9, Rule 1.8, pages 1-1-13 through 1-1-14
+  - id: rule-1.9
+    applies_to: all
+    check: Confirm that selected technical nouns are short and easy to understand.
+    source: ASD-STE100 Issue 9, Rule 1.9, page 1-1-14
+  - id: rule-1.10
+    applies_to: all
+    check: Confirm that technical nouns do not use regional, slang, or jargon wording.
+    source: ASD-STE100 Issue 9, Rule 1.10, page 1-1-14
+  - id: rule-1.11
+    applies_to: all
+    check: Confirm that one item does not have different technical nouns.
+    source: ASD-STE100 Issue 9, Rule 1.11, page 1-1-15
+  - id: rule-1.12
+    applies_to: all
+    check: Confirm that each technical verb belongs to a permitted technical-verb category.
+    source: ASD-STE100 Issue 9, Rule 1.12, pages 1-1-15 through 1-1-16
+  - id: rule-1.13
+    applies_to: all
+    check: Confirm that technical verbs are not used as nouns.
+    source: ASD-STE100 Issue 9, Rule 1.13, page 1-1-17
+  - id: rule-1.14
+    applies_to: all
+    check: Confirm American English spelling unless an official directive requires another spelling.
+    source: ASD-STE100 Issue 9, Rule 1.14, page 1-1-17
+  - id: rule-2.1
+    applies_to: all
+    check: Confirm that multi-word nouns do not exceed three words.
+    source: ASD-STE100 Issue 9, Rule 2.1, pages 1-2-1 through 1-2-2
+  - id: rule-2.2
+    applies_to: all
+    check: For a necessary longer technical noun, confirm the full first use and an approved clarity method.
+    source: ASD-STE100 Issue 9, Rule 2.2, pages 1-2-2 through 1-2-4
+  - id: rule-3.1
+    applies_to: all
+    check: Confirm that each dictionary verb uses only listed forms.
+    source: ASD-STE100 Issue 9, Rule 3.1, page 1-3-1
+  - id: rule-3.2
+    applies_to: all
+    check: Confirm that verbs use only the permitted forms and simple tenses.
+    source: ASD-STE100 Issue 9, Rule 3.2, pages 1-3-2 through 1-3-3
+  - id: rule-3.3
+    applies_to: all
+    check: Confirm that a past participle is used only as an adjective.
+    source: ASD-STE100 Issue 9, Rule 3.3, page 1-3-4
+  - id: rule-3.4
+    applies_to: all
+    check: Confirm that auxiliary verbs do not create complex verb constructions.
+    source: ASD-STE100 Issue 9, Rule 3.4, page 1-3-5
+  - id: rule-3.5
+    applies_to: all
+    check: Confirm that an -ing verb form occurs only as a technical noun or its modifier.
+    source: ASD-STE100 Issue 9, Rule 3.5, page 1-3-6
+  - id: rule-3.6
+    applies_to: all
+    check: Confirm active voice, except permitted descriptive passive voice when the agent is unknown.
+    source: ASD-STE100 Issue 9, Rule 3.6, pages 1-3-7 through 1-3-8
+  - id: rule-3.7
+    applies_to: all
+    check: Confirm that an approved verb, not a noun or another part of speech, describes each action.
+    source: ASD-STE100 Issue 9, Rule 3.7, pages 1-3-9 through 1-3-10
+  - id: rule-4.1
+    applies_to: all
+    check: Confirm short, clear sentences and one topic per sentence.
+    source: ASD-STE100 Issue 9, Rule 4.1, pages 1-4-1 through 1-4-2
+  - id: rule-4.2
+    applies_to: all
+    check: Confirm that necessary words are not omitted and contractions are not used.
+    source: ASD-STE100 Issue 9, Rule 4.2, pages 1-4-2 through 1-4-3
+  - id: rule-4.3
+    applies_to: all
+    check: Confirm that complex material uses a vertical list where the rule requires one.
+    source: ASD-STE100 Issue 9, Rule 4.3, pages 1-4-3 through 1-4-5
+  - id: rule-4.4
+    applies_to: descriptive
+    check: Confirm that permitted connecting words or phrases connect sentences with related topics.
+    source: ASD-STE100 Issue 9, Rule 4.4, pages 1-4-5 through 1-4-8
+  - id: rule-4.5
+    applies_to: all
+    check: Confirm applicable articles or demonstrative adjectives before nouns and multi-word nouns.
+    source: ASD-STE100 Issue 9, Rule 4.5, pages 1-4-8 through 1-4-9
+  - id: rule-5.1
+    applies_to: procedural
+    check: Confirm no procedural or safety sentence exceeds 20 words under Issue 9 counting rules.
+    source: ASD-STE100 Issue 9, Rule 5.1, page 1-5-1
+  - id: rule-5.2
+    applies_to: procedural
+    check: Confirm one instruction per sentence unless the permitted simultaneous-action exception applies.
+    source: ASD-STE100 Issue 9, Rule 5.2, pages 1-5-2 through 1-5-3
+  - id: rule-5.3
+    applies_to: procedural
+    check: Confirm that instructions use the imperative form.
+    source: ASD-STE100 Issue 9, Rule 5.3, pages 1-5-3 through 1-5-4
+  - id: rule-5.4
+    applies_to: procedural
+    check: Confirm that a prerequisite condition starts the instruction and is separated from the command by a comma.
+    source: ASD-STE100 Issue 9, Rule 5.4, pages 1-5-4 through 1-5-5
+  - id: rule-5.5
+    applies_to: procedural
+    check: Confirm that notes give information only and contain no instructions.
+    source: ASD-STE100 Issue 9, Rule 5.5, pages 1-5-5 through 1-5-7
+  - id: rule-6.1
+    applies_to: descriptive
+    check: Confirm that descriptive information is introduced gradually.
+    source: ASD-STE100 Issue 9, Rule 6.1, pages 1-6-1 through 1-6-3
+  - id: rule-6.2
+    applies_to: descriptive
+    check: Confirm logical structure through applicable key words and key phrases.
+    source: ASD-STE100 Issue 9, Rule 6.2, pages 1-6-3 through 1-6-4
+  - id: rule-6.3
+    applies_to: descriptive
+    check: Confirm no descriptive sentence exceeds 25 words under Issue 9 counting rules.
+    source: ASD-STE100 Issue 9, Rule 6.3, page 1-6-5
+  - id: rule-6.4
+    applies_to: descriptive
+    check: Confirm that paragraphs group related information.
+    source: ASD-STE100 Issue 9, Rule 6.4, page 1-6-5
+  - id: rule-6.5
+    applies_to: descriptive
+    check: Confirm that each paragraph has only one topic.
+    source: ASD-STE100 Issue 9, Rule 6.5, pages 1-6-6 through 1-6-7
+  - id: rule-6.6
+    applies_to: descriptive
+    check: Confirm that no paragraph contains more than six sentences.
+    source: ASD-STE100 Issue 9, Rule 6.6, page 1-6-8
+  - id: rule-7.1
+    applies_to: safety
+    check: Confirm that the safety label accurately identifies the applicable risk level.
+    source: ASD-STE100 Issue 9, Rule 7.1, pages 1-7-2 through 1-7-3
+  - id: rule-7.2
+    applies_to: safety
+    check: Confirm that each safety instruction starts with a clear, accurate command or condition.
+    source: ASD-STE100 Issue 9, Rule 7.2, pages 1-7-3 through 1-7-4
+  - id: rule-7.3
+    applies_to: safety
+    check: Confirm that each safety instruction explains the risk or possible result.
+    source: ASD-STE100 Issue 9, Rule 7.3, page 1-7-4
+  - id: rule-8.1
+    applies_to: all
+    check: Confirm standard punctuation and no semicolon.
+    source: ASD-STE100 Issue 9, Rule 8.1, page 1-8-2
+  - id: rule-8.2
+    applies_to: all
+    check: Confirm that hyphens connect only directly related words as the rule permits.
+    source: ASD-STE100 Issue 9, Rule 8.2, pages 1-8-2 through 1-8-3
+  - id: rule-8.3
+    applies_to: all
+    check: Confirm that parentheses are used only for a permitted purpose.
+    source: ASD-STE100 Issue 9, Rule 8.3, pages 1-8-3 through 1-8-5
+  - id: rule-8.4
+    applies_to: all
+    check: Apply the colon sentence boundary rule when counting words in vertical lists.
+    source: ASD-STE100 Issue 9, Rule 8.4, page 1-8-5
+  - id: rule-8.5
+    applies_to: all
+    check: Count parenthetical text as one word in its sentence.
+    source: ASD-STE100 Issue 9, Rule 8.5, page 1-8-5
+  - id: rule-8.6
+    applies_to: all
+    check: Apply the one-word counting rules to each listed special element.
+    source: ASD-STE100 Issue 9, Rule 8.6, pages 1-8-5 through 1-8-7
+  - id: rule-8.7
+    applies_to: all
+    check: Count a hyphenated word as one word.
+    source: ASD-STE100 Issue 9, Rule 8.7, page 1-8-7
+  - id: rule-9.1
+    applies_to: all
+    check: Use a different sentence construction when direct word replacement is insufficient.
+    source: ASD-STE100 Issue 9, Rule 9.1, pages 1-9-1 through 1-9-3
+  - id: rule-9.2
+    applies_to: all
+    check: Confirm that each approved word is used correctly in context.
+    source: ASD-STE100 Issue 9, Rule 9.2, page 1-9-4
+  - id: rule-9.3
+    applies_to: all
+    check: Confirm that adjacent words do not create an unapproved phrasal verb.
+    source: ASD-STE100 Issue 9, Rule 9.3, pages 1-9-4 through 1-9-5
+  - id: rule-9.4
+    applies_to: all
+    check: Confirm consistent terminology and wording.
+    source: ASD-STE100 Issue 9, Rule 9.4, page 1-9-5
+dictionary_checks:
+  - id: dictionary-approval
+    applies_to: each_word
+    check: Find the word in the complete Issue 9 word list and determine whether it is approved.
+    source: ASD-STE100 Issue 9, Part 2 Introduction, pages 2-0-3 through 2-0-4
+  - id: dictionary-part-of-speech-and-form
+    applies_to: each_dictionary_word
+    check: Verify the listed part of speech and every permitted form used in the output.
+    source: ASD-STE100 Issue 9, Part 2 Introduction, pages 2-0-4 through 2-0-8
+  - id: dictionary-meaning-and-help
+    applies_to: each_dictionary_word
+    check: Verify the approved meaning, restrictions, help, and applicable examples for the exact entry.
+    source: ASD-STE100 Issue 9, Part 2 Introduction, pages 2-0-9 through 2-0-16

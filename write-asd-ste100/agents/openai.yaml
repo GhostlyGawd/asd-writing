@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write ASD-STE100"
+  short_description: "Author and review Issue 9 technical content"
+  default_prompt: "Use $write-asd-ste100 to rewrite this technical content and prepare compliance evidence."
