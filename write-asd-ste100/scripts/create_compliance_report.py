@@ -90,6 +90,7 @@ UNRESOLVED_REGISTERS = (
     "ambiguities",
     "source_errors",
 )
+TRUSTED_SKILL_ROOT = Path(__file__).resolve().parents[1]
 
 
 class InputError(ValueError):
@@ -335,6 +336,26 @@ def _validate_artifacts(
             entries = validate_entries(terminology_data)
         except TerminologyInputError as exc:
             blockers.append(f"artifact:terminology:INVALID:{exc}")
+
+    trusted_checklist_path = (
+        TRUSTED_SKILL_ROOT / "references" / "compliance-checklist.yaml"
+    )
+    trusted_standard_path = (
+        TRUSTED_SKILL_ROOT / "references" / "asd-ste100-issue-9.pdf"
+    )
+    try:
+        trusted_checklist = load_data(trusted_checklist_path)
+        trusted_checklist_sha = sha256_file(trusted_checklist_path)
+        trusted_standard_sha = sha256_file(trusted_standard_path)
+    except InputError as exc:
+        blockers.append(f"trusted-reference:UNAVAILABLE:{exc}")
+    else:
+        if trusted_checklist.get("standard", {}).get("sha256") != trusted_standard_sha:
+            blockers.append("trusted-reference:STANDARD MANIFEST MISMATCH")
+        if artifacts["checklist"].get("sha256") != trusted_checklist_sha:
+            blockers.append("artifact:checklist:NOT TRUSTED BUNDLED CHECKLIST")
+        if artifacts["standard"].get("sha256") != trusted_standard_sha:
+            blockers.append("artifact:standard:NOT TRUSTED CONTROLLING COPY")
     return artifacts, checklist, entries, blockers
 
 
@@ -640,16 +661,19 @@ def validate_reviewers(
                 raise InputError(f"{context} is missing field {field!r}.")
         reviewer_id = require_text(reviewer, "reviewer_id", context)
         role = require_text(reviewer, "role", context)
+        reviewer_id_unique = reviewer_id not in reviewer_ids
         if reviewer_id in reviewer_ids:
             blockers.append(f"reviewer:{reviewer_id}:DUPLICATE ROLE OR RECORD")
         reviewer_ids.add(reviewer_id)
         if role not in REQUIRED_REVIEWER_ROLES:
             raise InputError(f"{context} has unsupported role {role!r}.")
+        review_date_valid = True
         try:
             reviewer["review_date"] = parse_date(
                 reviewer["review_date"], f"{context} review_date"
             ).isoformat()
         except InputError as exc:
+            review_date_valid = False
             blockers.append(f"reviewer:{reviewer_id}:{exc}")
         digest = reviewer.get("reviewed_artifact_sha256")
         if digest != artifact_digest:
@@ -681,6 +705,8 @@ def validate_reviewers(
             and reviewer["final_approval_state"] == "APPROVED"
             and reviewer_corrections_applied
             and digest == artifact_digest
+            and reviewer_id_unique
+            and review_date_valid
         )
         if approved:
             approved_roles.add(role)
@@ -804,7 +830,10 @@ def _build_report(
     )
     references_ok = (
         authorization_ok
-        and not any(blocker.startswith("artifact:") for blocker in blockers)
+        and not any(
+            blocker.startswith(("artifact:", "trusted-reference:"))
+            for blocker in blockers
+        )
         and bool(checklist)
     )
 

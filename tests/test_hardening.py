@@ -4,6 +4,7 @@ import datetime as dt
 import hashlib
 import importlib.util
 import json
+import subprocess
 import sys
 import tempfile
 import time
@@ -98,10 +99,12 @@ class EvidenceFactory:
     def __init__(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
-        self.standard = self.root / "asd-ste100-issue-9.pdf"
+        self.references = self.root / "references"
+        self.references.mkdir()
+        self.standard = self.references / "asd-ste100-issue-9.pdf"
         self.standard.write_bytes(b"authorized-test-standard")
         standard_sha = sha256_bytes(self.standard.read_bytes())
-        self.checklist = self.root / "compliance-checklist.yaml"
+        self.checklist = self.references / "compliance-checklist.yaml"
         self.checklist.write_text(
             yaml.safe_dump(
                 {
@@ -145,6 +148,7 @@ class EvidenceFactory:
         )
         self.terminology = self.root / "project-terminology.yaml"
         self.write_terms([])
+        reporter.TRUSTED_SKILL_ROOT = self.root
 
     def cleanup(self) -> None:
         self.temp.cleanup()
@@ -492,6 +496,20 @@ class ComplianceHardeningTests(unittest.TestCase):
         self.assertNotEqual(0, code)
         self.assertTrue(any(item.startswith("reviewer:") for item in result["blockers"]))
 
+    def test_future_review_date_alone_blocks_release(self) -> None:
+        evidence = self.factory.evidence()
+        evidence["reviewers"][0]["review_date"] = "2999-01-01"
+        result, code = reporter.build_report(evidence)
+        self.assertFalse(result["released"])
+        self.assertEqual(2, code)
+
+    def test_same_reviewer_cannot_fill_both_roles(self) -> None:
+        evidence = self.factory.evidence()
+        evidence["reviewers"][1]["reviewer_id"] = evidence["reviewers"][0]["reviewer_id"]
+        result, code = reporter.build_report(evidence)
+        self.assertFalse(result["released"])
+        self.assertEqual(2, code)
+
     def test_open_reviewer_corrections_block(self) -> None:
         evidence = self.factory.evidence()
         evidence["reviewers"][0]["required_corrections"] = [
@@ -511,6 +529,41 @@ class ComplianceHardeningTests(unittest.TestCase):
         result, _ = reporter.build_report(evidence)
         self.assertFalse(result["released"])
         self.assertIn("artifact:output:HASH MISMATCH", result["blockers"])
+
+    def test_mutually_consistent_untrusted_standard_and_checklist_block(self) -> None:
+        evidence = self.factory.evidence()
+        alternate_standard = self.factory.root / "alternate.pdf"
+        alternate_standard.write_bytes(b"alternate-standard")
+        alternate_checklist = self.factory.root / "alternate-checklist.yaml"
+        checklist = yaml.safe_load(
+            self.factory.checklist.read_text(encoding="utf-8")
+        )
+        checklist["standard"]["sha256"] = sha256_bytes(
+            alternate_standard.read_bytes()
+        )
+        alternate_checklist.write_text(
+            yaml.safe_dump(checklist, sort_keys=False), encoding="utf-8"
+        )
+        evidence["artifacts"]["standard"] = {
+            "path": str(alternate_standard),
+            "sha256": sha256_bytes(alternate_standard.read_bytes()),
+        }
+        evidence["artifacts"]["checklist"] = {
+            "path": str(alternate_checklist),
+            "sha256": sha256_bytes(alternate_checklist.read_bytes()),
+        }
+        evidence["authorization"]["standard_sha256"] = evidence["artifacts"][
+            "standard"
+        ]["sha256"]
+        digest = reporter.review_digest(evidence)
+        for reviewer in evidence["reviewers"]:
+            reviewer["reviewed_artifact_sha256"] = digest
+        result, code = reporter.build_report(evidence)
+        self.assertFalse(result["released"])
+        self.assertEqual(2, code)
+        self.assertTrue(
+            any("NOT TRUSTED" in blocker for blocker in result["blockers"])
+        )
 
     def test_rewrite_requires_substantive_change_evidence(self) -> None:
         evidence = self.factory.evidence()
@@ -601,6 +654,89 @@ class SkillContractTests(unittest.TestCase):
         result, code = reporter.verify_skill_root(ROOT / "write-asd-ste100")
         self.assertEqual(0, code)
         self.assertEqual("PASS", result["status"])
+
+
+class CLITests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.factory = EvidenceFactory()
+
+    def tearDown(self) -> None:
+        self.factory.cleanup()
+
+    def run_cli(self, script: str, *args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [sys.executable, str(SCRIPTS / script), *args],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+    def test_report_cli_pass_and_clean_output(self) -> None:
+        self.factory.standard = (
+            ROOT
+            / "write-asd-ste100"
+            / "references"
+            / "asd-ste100-issue-9.pdf"
+        )
+        self.factory.checklist = (
+            ROOT
+            / "write-asd-ste100"
+            / "references"
+            / "compliance-checklist.yaml"
+        )
+        reporter.TRUSTED_SKILL_ROOT = ROOT / "write-asd-ste100"
+        evidence = self.factory.evidence(output_mode="clean")
+        path = self.factory.root / "evidence.yaml"
+        path.write_text(
+            yaml.safe_dump(evidence, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        result = self.run_cli(
+            "create_compliance_report.py", str(path), "--format", "clean"
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(evidence["artifacts"]["output"]["text"], result.stdout.strip())
+
+    def test_report_cli_rejects_duplicate_keys_without_traceback(self) -> None:
+        path = self.factory.root / "duplicate-evidence.yaml"
+        path.write_text(
+            "schema_version: 2\nschema_version: 1\n", encoding="utf-8"
+        )
+        result = self.run_cli(
+            "create_compliance_report.py", str(path), "--format", "json"
+        )
+        self.assertEqual(1, result.returncode)
+        self.assertNotIn("Traceback", result.stderr + result.stdout)
+
+    def test_terminology_cli_blocks_missing_coverage(self) -> None:
+        text_path = self.factory.root / "text.txt"
+        text_path.write_text("Inspect the flux capacitor.", encoding="utf-8")
+        result = self.run_cli(
+            "check_project_terms.py",
+            "--terms",
+            str(self.factory.terminology),
+            "--text",
+            str(text_path),
+            "--domain",
+            "fuel",
+            "--format",
+            "json",
+        )
+        self.assertEqual(2, result.returncode)
+        self.assertIn('"status": "INCOMPLETE"', result.stdout)
+
+    def test_coverage_template_cli_is_fail_closed(self) -> None:
+        text_path = self.factory.root / "text.txt"
+        text_path.write_text("Inspect the pump.", encoding="utf-8")
+        result = self.run_cli(
+            "check_project_terms.py",
+            "--text",
+            str(text_path),
+            "--emit-coverage-template",
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("REVIEW REQUIRED", result.stdout)
 
 
 class AcceptanceMatrixTests(unittest.TestCase):

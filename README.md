@@ -19,8 +19,7 @@ write-asd-ste100/references/asd-ste100-issue-9.pdf
 The expected digest is recorded in `references/compliance-checklist.yaml`. A clone without the
 authorized local file is intentionally non-operational for compliance release.
 
-Do not commit or redistribute the PDF. The repository-local `.git/info/exclude` entry protects this
-checkout; configure an equivalent local exclusion in each new clone.
+Do not commit or redistribute the PDF. The tracked `.gitignore` protects this path in each clone.
 
 ## Workflow
 
