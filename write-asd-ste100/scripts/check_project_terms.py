@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import bisect
 import datetime as dt
 import json
 import re
@@ -133,20 +134,50 @@ def lexical_tokens(text: str) -> list[dict[str, Any]]:
     """Return normalized lexical tokens with stable locations."""
     normalized = normalize_text(text)
     tokens: list[dict[str, Any]] = []
-    for match in TOKEN_PATTERN.finditer(normalized):
-        start = match.start()
-        line = normalized.count("\n", 0, start) + 1
-        previous_break = normalized.rfind("\n", 0, start)
-        column = start - previous_break
-        tokens.append(
+    for line_number, line_text in enumerate(
+        normalized.splitlines() or [normalized], start=1
+    ):
+        for match in TOKEN_PATTERN.finditer(line_text):
+            column = match.start() + 1
+            tokens.append(
+                {
+                    "token": match.group(0),
+                    "location": f"line {line_number}, column {column}",
+                    "line": line_number,
+                    "column": column,
+                }
+            )
+    return tokens
+
+
+def coverage_template(text: str) -> dict[str, Any]:
+    """Create a complete fail-closed word-classification starter ledger."""
+    rows = []
+    for index, token in enumerate(lexical_tokens(text), start=1):
+        rows.append(
             {
-                "token": match.group(0),
-                "location": f"line {line}, column {column}",
-                "line": line,
-                "column": column,
+                "index": index,
+                "token": token["token"],
+                "location": token["location"],
+                "classification": "NON_APPROVED_WORD",
+                "basis": (
+                    "REQUIRED: cite the complete Issue 9 dictionary entry or "
+                    "approved project terminology entry"
+                ),
+                "result": "REVIEW REQUIRED",
+                "approved_meaning": None,
+                "approved_part_of_speech": None,
+                "term": None,
             }
         )
-    return tokens
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "scope": (
+            "Starter ledger only. Every row is fail-closed until a qualified "
+            "reviewer records a supported classification."
+        ),
+        "word_classifications": rows,
+    }
 
 
 def phrase_pattern(phrase: str, *, case_sensitive: bool = False) -> re.Pattern[str]:
@@ -504,6 +535,9 @@ def analyze_text(
     forms, synonyms, patterns = _compiled_inventory(active)
     used_approved_terms: dict[str, set[int]] = {}
     finding_keys: set[tuple[str, str]] = set()
+    newline_offsets = [
+        index for index, character in enumerate(normalized_text) if character == "\n"
+    ]
     for pattern, sensitive in patterns:
         scan_text = normalized_text if sensitive else normalized_text.casefold()
         scan_pattern = pattern
@@ -513,7 +547,7 @@ def analyze_text(
         for match in scan_pattern.finditer(scan_text):
             matched = " ".join(match.group(0).split())
             key = normalize_key(matched, case_sensitive=sensitive)
-            line = scan_text.count("\n", 0, match.start()) + 1
+            line = bisect.bisect_right(newline_offsets, match.start()) + 1
             form_record = forms.get((key, sensitive))
             synonym_record = synonyms.get((key, sensitive))
             if form_record:
@@ -768,10 +802,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "Validate complete word coverage against approved project terminology."
         )
     )
-    parser.add_argument("--terms", required=True, type=Path)
+    parser.add_argument("--terms", type=Path)
     parser.add_argument("--text", required=True, type=Path)
     parser.add_argument("--coverage", type=Path)
-    parser.add_argument("--domain", required=True)
+    parser.add_argument("--domain")
+    parser.add_argument(
+        "--emit-coverage-template",
+        action="store_true",
+        help="Emit a complete fail-closed word ledger for --text.",
+    )
     parser.add_argument(
         "--candidate",
         action="append",
@@ -791,8 +830,22 @@ def main(argv: list[str] | None = None) -> int:
     """Run the terminology check and return a blocking exit status."""
     try:
         args = parse_args(argv)
-        entries = validate_entries(load_yaml(args.terms))
         text = args.text.read_text(encoding="utf-8")
+        if args.emit_coverage_template:
+            print(
+                yaml.safe_dump(
+                    coverage_template(text),
+                    sort_keys=False,
+                    allow_unicode=True,
+                )
+            )
+            return 0
+        if args.terms is None or not args.domain:
+            raise InputError(
+                "--terms and --domain are required unless "
+                "--emit-coverage-template is used."
+            )
+        entries = validate_entries(load_yaml(args.terms))
         report = analyze_text(
             entries,
             text,

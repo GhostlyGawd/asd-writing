@@ -122,7 +122,11 @@ If two controlling sources conflict:
 
 ## 8. Operating modes
 
-Support these modes.
+Select one task mode and one independent output mode.
+
+Task modes are write, rewrite, and compliance review. Output modes are compliance report, clean
+output, and teaching. A request such as "rewrite and explain" uses task mode `rewrite` and output
+mode `teaching`.
 
 ### 8.1 Write
 
@@ -154,7 +158,7 @@ Review text without automatically changing it.
 
 Report each problem and give a proposed correction.
 
-### 8.4 Rewrite with compliance report
+### 8.4 Compliance report output
 
 Return:
 
@@ -165,13 +169,13 @@ Return:
 5. Unresolved items
 6. Required reviewer actions
 
-### 8.5 Clean output
+### 8.5 Clean output mode
 
 Return only the final technical text.
 
 Permit this mode only after all release gates pass. Do not use this mode for drafts or incomplete reviews.
 
-### 8.6 Teaching mode
+### 8.6 Teaching output mode
 
 Explain the changes.
 
@@ -366,8 +370,12 @@ Create a structured compliance record.
 
 Use these columns:
 
-| Location | Check type | Result | Rule or dictionary basis | Correction | Reviewer | Evidence |
-|---|---|---|---|---|---|---|
+| Check ID | Location | Check type | Result | Rule or dictionary basis | Correction | Reviewer | Evidence |
+|---|---|---|---|---|---|---|---|
+
+Use the exact checklist ID for every applicable rule and dictionary check. Bind the complete record
+to exact source, output, standard, checklist, and terminology digests. Missing, extra, duplicate, or
+unbound evidence blocks release.
 
 Use these result values:
 
@@ -447,8 +455,13 @@ Record:
 - review result;
 - required corrections;
 - final approval state.
+- the digest of the exact reviewed artifact;
+- structured correction status and application evidence.
 
 The skill can prepare content and evidence for review. It cannot create a human approval record without an actual reviewer decision.
+
+Require distinct reviewer identifiers for the two roles. Reject future review dates, approval for a
+different artifact digest, or an approval record with an open correction.
 
 ## 20. Prohibited claims
 
@@ -499,7 +512,7 @@ Use this frontmatter structure:
 
 ---
 name: write-asd-ste100
-description: Write, rewrite, and review technical content for full compliance with ASD-STE100 Simplified Technical English Issue 9. Use for STE authoring, ASD-STE100 rewriting, controlled technical English, vocabulary checks, compliance reviews, maintenance instructions, operating instructions, warnings, cautions, notes, and technical descriptions.
+description: Write, rewrite, and review technical content for full compliance with ASD-STE100 Simplified Technical English Issue 9. Use only when the user explicitly requests ASD-STE100, Simplified Technical English, STE, controlled technical English, or an STE vocabulary, grammar, or compliance check; then support maintenance and operating instructions, warnings, cautions, notes, and technical descriptions.
 ---
 
 Keep the body concise.
@@ -527,6 +540,9 @@ Create the project terminology template and compliance checklist from verified r
 
 Every checklist item must cite its source in Issue 9.
 
+Represent rule applicability with all applicable content labels. In particular, do not let a safety
+label suppress a procedural rule that Issue 9 also applies to safety instructions.
+
 Do not add a rule that cannot be verified.
 
 ## 25. Script requirements
@@ -541,6 +557,10 @@ The terminology checker must:
 - detect inconsistent approved terms;
 - produce machine-readable and human-readable results;
 - return a failure status when blocking problems exist.
+- require a complete word-classification ledger for nonempty text;
+- enforce schema enums, approval dates, active domains, case-sensitive identifiers, Unicode
+  normalization, and collision-free forms;
+- reject duplicate YAML keys and incomplete candidate coverage.
 
 The compliance-report script must:
 
@@ -549,6 +569,12 @@ The compliance-report script must:
 - identify failed release gates;
 - prevent a compliant status when a gate is open;
 - produce a clear report.
+- derive release gates from content-bound evidence instead of accepting caller-supplied gate
+  assertions;
+- verify source, output, standard, checklist, and terminology digests;
+- bind actual reviewer records to the exact evidence digest;
+- render unresolved-item, safety-trace, reviewer, and correction evidence;
+- emit clean text only after all derived gates pass.
 
 Scripts must not claim to check rules that they do not implement.
 
@@ -606,6 +632,11 @@ Validate:
 - output statuses;
 - release-gate behavior;
 - test results.
+- fail-closed evidence-template generation;
+- complete token-ledger generation;
+- hash-verified applicable-check indexing;
+- local-standard identity and source/installation parity;
+- bounded terminology-scan performance on realistic long input.
 
 Forward-test the skill on realistic technical content.
 
@@ -623,6 +654,8 @@ Install and save the skill only when:
 - all acceptance tests pass;
 - no unverified ASD-STE100 rule is present;
 - the release gates operate correctly.
+- the local authorized PDF matches the checklist manifest;
+- the source and installed operational files have exact parity.
 
 If these conditions do not pass, preserve the work but report that the skill is not ready for installation.
 

@@ -6,6 +6,7 @@ import importlib.util
 import json
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -430,6 +431,30 @@ class TerminologyHardeningTests(unittest.TestCase):
         self.assertIn(r"bad\|term", rendered)
         self.assertIn(r"a\|b", rendered)
 
+    def test_coverage_template_is_complete_and_fail_closed(self) -> None:
+        template = terms.coverage_template("Inspect pump 1.")
+        self.assertEqual(3, len(template["word_classifications"]))
+        self.assertTrue(
+            all(
+                row["result"] == "REVIEW REQUIRED"
+                and row["classification"] == "NON_APPROVED_WORD"
+                for row in template["word_classifications"]
+            )
+        )
+
+    def test_large_inventory_uses_bounded_scan_time(self) -> None:
+        entries = [term_entry(f"component {index}") for index in range(500)]
+        data = yaml.safe_load(self.factory.terminology.read_text(encoding="utf-8"))
+        data["terms"] = entries
+        validated = terms.validate_entries(data)
+        text = ("unrelated technical text " * 20_000).strip()
+        coverage = word_rows(text)
+        start = time.perf_counter()
+        result = terms.analyze_text(validated, text, coverage, "fuel")
+        elapsed = time.perf_counter() - start
+        self.assertEqual("PASS", result["status"])
+        self.assertLess(elapsed, 5.0)
+
 
 class ComplianceHardeningTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -510,6 +535,13 @@ class ComplianceHardeningTests(unittest.TestCase):
         self.assertIn("## Reviewer records", rendered)
         self.assertIn("## Unresolved items", rendered)
 
+    def test_applicable_check_index_includes_safety_procedure_rule(self) -> None:
+        checklist = yaml.safe_load(
+            self.factory.checklist.read_text(encoding="utf-8")
+        )
+        rows = reporter.applicable_check_index(checklist, ["safety"])
+        self.assertIn("rule-procedure", {row["id"] for row in rows})
+
     def test_clean_output_is_only_emitted_after_release(self) -> None:
         evidence = self.factory.evidence(output_mode="clean")
         result, code = reporter.build_report(evidence)
@@ -527,6 +559,48 @@ class ComplianceHardeningTests(unittest.TestCase):
         self.assertFalse(result["released"])
         self.assertEqual(1, code)
         json.dumps(result)
+
+
+class SkillContractTests(unittest.TestCase):
+    def test_frontmatter_activation_is_explicit_and_minimal(self) -> None:
+        skill = (ROOT / "write-asd-ste100" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        _, frontmatter, _ = skill.split("---", 2)
+        metadata = yaml.safe_load(frontmatter)
+        self.assertEqual({"name", "description"}, set(metadata))
+        self.assertEqual("write-asd-ste100", metadata["name"])
+        self.assertIn("Use only when the user explicitly requests", metadata["description"])
+        self.assertIn("ASD-STE100", metadata["description"])
+
+    def test_skill_documents_fail_closed_helpers_and_mode_axes(self) -> None:
+        skill = (ROOT / "write-asd-ste100" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        for phrase in (
+            "Select one task mode",
+            "Select one independent output mode",
+            "--emit-template",
+            "--emit-coverage-template",
+            "--list-applicable-checks",
+            "--verify-skill-root",
+            "--format clean",
+            "actual trained ASD-STE100 reviewer",
+            "authorized technical reviewer",
+        ):
+            self.assertIn(phrase, skill)
+
+    def test_evidence_template_is_incomplete_by_construction(self) -> None:
+        template = reporter.evidence_template()
+        self.assertNotEqual(reporter.FULL_STATUS, template["requested_status"])
+        self.assertEqual([], template["checks"])
+        self.assertEqual([], template["word_classifications"])
+        self.assertEqual([], template["reviewers"])
+
+    def test_local_skill_root_verifier_passes(self) -> None:
+        result, code = reporter.verify_skill_root(ROOT / "write-asd-ste100")
+        self.assertEqual(0, code)
+        self.assertEqual("PASS", result["status"])
 
 
 class AcceptanceMatrixTests(unittest.TestCase):

@@ -1,134 +1,160 @@
 ---
 name: write-asd-ste100
-description: Write, rewrite, and review technical content for full compliance with ASD-STE100 Simplified Technical English Issue 9. Use for STE authoring, ASD-STE100 rewriting, controlled technical English, vocabulary checks, compliance reviews, maintenance instructions, operating instructions, warnings, cautions, notes, and technical descriptions.
+description: Write, rewrite, and review technical content for full compliance with ASD-STE100 Simplified Technical English Issue 9. Use only when the user explicitly requests ASD-STE100, Simplified Technical English, STE, controlled technical English, or an STE vocabulary, grammar, or compliance check; then support maintenance and operating instructions, warnings, cautions, notes, and technical descriptions.
 ---
 
 # Write ASD-STE100
 
 Use the complete authorized Issue 9 PDF as the controlling language reference. Treat full
-compliance as a release condition, not as a writing target. Never claim ASD or STEMG approval,
-certification, or endorsement.
+compliance as a release condition. Never claim ASD or STEMG approval, certification, or
+endorsement. Never treat automated checks or AI review as a substitute for the two required human
+reviewers.
 
-## Confirm inputs and mode
+Resolve the directory containing this file as `<SKILL_ROOT>`. Use absolute paths based on that
+directory when running bundled scripts or opening references.
 
-Require the authorized PDF, approved technical source information, approved company and project
-terminology, company writing requirements, content type, intended reader, technical domain, and
-protected terms/values/identifiers. If an input is absent, permit a draft only. Put
-`DRAFT — FULL COMPLIANCE CHECK NOT COMPLETE` above the draft and use the final status
-`NOT RELEASED — COMPLIANCE CHECK INCOMPLETE`.
+## Confirm inputs and select modes
 
-Identify one mode:
+Require the authorized PDF, approved source information, company requirements, a project-controlled
+terminology file, content type, intended reader, technical domain, and protected terms, values, and
+identifiers. If an input is absent, put `DRAFT — FULL COMPLIANCE CHECK NOT COMPLETE` above any
+draft and use `NOT RELEASED — COMPLIANCE CHECK INCOMPLETE` as its final status.
 
-- **Write:** Create text only from approved source facts.
-- **Rewrite:** Preserve every fact, condition, sequence, quantity, unit, limit, tolerance,
-  identifier, part name, safety level, and mandatory/optional meaning.
-- **Compliance review:** Report each problem and a proposed correction without changing the text.
-- **Rewrite with compliance report:** Return revised text, status, change report, evidence,
-  unresolved items, and reviewer actions.
-- **Clean output:** Return only released technical text. Refuse this mode until every gate passes.
-- **Teaching:** For each important change, give source text, revised text, problem type, an exact
-  verified rule or dictionary basis, and a short explanation.
+Select one task mode:
 
-Support procedural, descriptive, maintenance, operating, troubleshooting, safety, note, system,
-component, inspection, test, and mixed technical content. Divide mixed content into procedural
-and descriptive sections before checking it.
+- `write`: Create text only from approved source facts.
+- `rewrite`: Preserve every fact, condition, sequence, quantity, unit, limit, tolerance, identifier,
+  part name, safety level, and mandatory or optional meaning.
+- `review`: Report each problem and a proposed correction without silently changing the text.
 
-## Use controlling sources
+Select one independent output mode:
 
-Apply this hierarchy: safety requirements; approved technical source data; approved company
+- `report`: Return technical text, status, changes, evidence, unresolved items, and reviewer actions.
+- `teaching`: Add source text, revised text, problem type, exact verified basis, and explanation.
+- `clean`: Return only final technical text. Refuse it until the report script permits release.
+
+Identify all applicable content labels. For mixed content, label both procedural and descriptive
+sections. Add `safety` when a warning, caution, or other safety instruction occurs.
+
+## Apply controlling sources
+
+Use this hierarchy: safety requirements; approved technical source data; approved company
 terminology; approved project terminology; Issue 9 writing rules; Issue 9 dictionary; general
 English. Never change a technical fact to satisfy a language rule.
 
-Open `references/asd-ste100-issue-9.pdf` and verify its Issue 9 identity before work. Use the PDF
-for every exact rule, limit, meaning, part of speech, form, restriction, exception, and dictionary
-decision. Use `references/compliance-checklist.yaml` only as an index into the PDF, never as a
-substitute. Search the complete dictionary entry for each output word. Do not use memory, an older
-issue, a summary, or a general grammar checker as authority. Do not invent citations.
+Open `<SKILL_ROOT>/references/asd-ste100-issue-9.pdf`. Verify its Issue 9 identity and digest before
+work. Use `<SKILL_ROOT>/references/compliance-checklist.yaml` only as an index into that PDF. Read
+each complete cited rule and exception. Search the complete dictionary entry for every output word.
+Do not use memory, an older issue, a summary, or a general grammar checker as authority. Do not
+invent citations.
 
-Load `references/project-terminology.yaml`. Use only entries whose approval status is `APPROVED`.
-Do not infer approval from frequency. Put a necessary absent or unapproved term in the unresolved
-terminology list and block release.
+Treat `<SKILL_ROOT>/references/project-terminology.yaml` as a template only. Copy it to a
+project-controlled location, obtain actual approvals, and pass that copy to the scripts. Do not
+modify the installed template. Use only `APPROVED` entries for the active domain. Preserve absent
+or unapproved necessary terms in the unresolved terminology register and block release.
 
-If controlling sources conflict, stop the affected rewrite, identify both sources and the required
-authorized decision, and set `NOT RELEASED — COMPLIANCE CHECK FAILED`. If source text is
-ambiguous, quote it, list the possible meanings, state the technical decision needed, request
-clarification, and block the affected content. Preserve and flag a possible source error.
+If controlling sources conflict, stop the affected rewrite, identify both sources and the
+authorized decision needed, and set a `NOT RELEASED` status. For ambiguity, quote the source, list
+possible meanings, identify the required authority, and keep the item open. Preserve and flag
+possible source errors.
+
+Handle proprietary, personal, export-controlled, or safety-sensitive source material only in
+locations and tools approved by the organization. Do not upload, disclose, or retain it beyond the
+authorized workflow.
 
 ## Follow the workflow
 
-1. Confirm the controlling references and all required inputs.
-2. Identify content type, reader, domain, terminology, and protected content.
-3. Separate procedural and descriptive content and find ambiguity before rewriting.
-4. Write or rewrite without adding facts.
-5. Classify every output word as an Issue 9 dictionary word, approved technical noun, approved
-   technical verb, permitted proper noun, permitted abbreviation/identifier, or non-approved word.
-6. For each dictionary word, verify its approved meaning, part of speech, form, and restrictions.
-7. Check every applicable Issue 9 rule for each sentence, paragraph, sequence, and safety item.
-8. Compare the result with the technical source and protected content.
-9. Run the terminology checker and all other available deterministic checks. Record only what each
-   check actually implements.
-10. Record evidence, correct each problem, and repeat all affected checks.
-11. Obtain an actual trained ASD-STE100 language review and authorized technical review. Record
-    reviewer identifier, role, date, result, corrections, and approval state. Never fabricate review.
-12. Apply authorized corrections and repeat the complete final checks.
-13. Run the compliance-report script. Release only if it permits the requested status and mode.
+1. Confirm references, inputs, task mode, output mode, reader, domain, content labels, and protected
+   content.
+2. Separate mixed content and identify ambiguity, source errors, and controlling-source conflicts.
+3. Write or rewrite without adding facts.
+4. Generate a complete fail-closed word ledger. For each token, verify its classification, basis,
+   result, and location. For each dictionary word, verify meaning, part of speech, form, and
+   restrictions. For each project term, record the complete term and approval entry.
+5. Get the hash-verified applicable-check index. Check every applicable rule for every sentence,
+   paragraph, sequence, and safety item against the complete PDF.
+6. Compare source and output. Record substantive rewrite changes, technical integrity, protected
+   content, and one safety trace per safety item.
+7. Run the terminology checker. Resolve every finding and rerun all affected checks.
+8. Generate the report. Its first blocked run supplies the review-artifact digest.
+9. Give that exact source/output/evidence bundle and digest to an actual trained ASD-STE100 reviewer
+   and an authorized technical reviewer. Use different reviewer identifiers.
+10. Record corrections as structured items. Apply them, update all affected evidence, regenerate
+    the digest, obtain approval for that exact revision, and rerun final checks.
+11. Release only when every derived gate is `PASS`. Use `clean` only when the script emits the final
+    text successfully.
 
-Do not skip checks because text appears simple. Do not use synonym variation. Use one term for one
-meaning and one meaning for one term when the domain permits it.
+For long content, process stable source sections in manageable batches, but merge them into one
+ordered final output, one complete token ledger, and one applicable-check ledger. Reconcile
+cross-section terminology, references, sequence, and protected values. Never release a partial
+batch as the complete document.
 
-## Run deterministic scripts
+## Run deterministic tools
 
-Run the terminology checker once for JSON and once for a readable report:
-
-```text
-python scripts/check_project_terms.py --terms references/project-terminology.yaml --text INPUT.txt --candidate TERM --format json
-python scripts/check_project_terms.py --terms references/project-terminology.yaml --text INPUT.txt --candidate TERM --format human
-```
-
-Pass each suspected technical term with `--candidate`. The script checks only project terminology:
-schema validity, known unapproved terms, absent candidates, prohibited synonyms, and inconsistent
-approved terms. It does not check the Issue 9 dictionary or grammar.
-
-Prepare a YAML or JSON evidence file and run:
+Generate a fail-closed evidence starter:
 
 ```text
-python scripts/create_compliance_report.py INPUT.yaml --format json
-python scripts/create_compliance_report.py INPUT.yaml --format human
+python "<SKILL_ROOT>/scripts/create_compliance_report.py" --emit-template
 ```
 
-The report script validates result values, required release gates, change preservation decisions,
-reviewer records, status, and clean-output eligibility. It does not perform linguistic or technical
-review.
+Generate a complete token ledger for the exact final text:
 
-## Record evidence
+```text
+python "<SKILL_ROOT>/scripts/check_project_terms.py" --text "FINAL.txt" --emit-coverage-template
+```
 
-Use this compliance record:
+Get the hash-verified applicable rule index:
 
-| Location | Check type | Result | Rule or dictionary basis | Correction | Reviewer | Evidence |
-|---|---|---|---|---|---|---|
+```text
+python "<SKILL_ROOT>/scripts/create_compliance_report.py" --list-applicable-checks --checklist "<SKILL_ROOT>/references/compliance-checklist.yaml" --standard "<SKILL_ROOT>/references/asd-ste100-issue-9.pdf" --content-type procedural
+```
 
-Use only `PASS`, `FAIL`, `NOT APPLICABLE`, or `REVIEW REQUIRED`. A `FAIL` or
-`REVIEW REQUIRED` blocks release. Cite the exact rule, dictionary entry, approved terminology
-entry, or technical source with concise checkable evidence.
+After qualified review fills every word row, run the terminology check once for machine and human
+output:
 
-For rewrites, also use:
+```text
+python "<SKILL_ROOT>/scripts/check_project_terms.py" --terms "PROJECT-TERMINOLOGY.yaml" --text "FINAL.txt" --coverage "EVIDENCE.yaml" --domain "DOMAIN" --format both
+```
 
-| Location | Source text | Revised text | Reason | Rule or dictionary basis | Technical meaning preserved |
-|---|---|---|---|---|---|
+Run the release report:
 
-Use only `YES`, `NO`, or `REVIEW REQUIRED` in the last column. `NO` or
-`REVIEW REQUIRED` blocks release.
+```text
+python "<SKILL_ROOT>/scripts/create_compliance_report.py" "EVIDENCE.yaml" --format both
+```
 
-## Enforce release gates
+The report rejects caller-supplied release gates and derives all gates from exact checklist
+coverage, token coverage, file and text digests, terminology results, technical-integrity evidence,
+unresolved registers, safety traces, corrections, and revision-bound reviewers. Its digest binds
+review to the source, output, references, and evidence. Any evidence change invalidates prior
+reviewer records.
 
-Require all of these to pass: authorized complete standard available; complete text checked; all
-applicable rules checked; every word classified; each dictionary meaning and part of speech
-verified; all technical terms approved; automated checks pass; no unresolved language,
-terminology, or ambiguity item; all technical and safety facts preserved; trained language reviewer
-approval; authorized technical reviewer approval; all corrections applied; and final checks pass.
-One open gate blocks release.
+For clean output, run:
 
-Use only these final compliance statuses:
+```text
+python "<SKILL_ROOT>/scripts/create_compliance_report.py" "EVIDENCE.yaml" --format clean
+```
+
+Verify source, local standard, and installation parity when installing or updating:
+
+```text
+python "<SKILL_ROOT>/scripts/create_compliance_report.py" --verify-skill-root "<SKILL_ROOT>" --compare-skill-root "INSTALLED-SKILL-ROOT"
+```
+
+These scripts validate only the deterministic scope they report. They do not decide dictionary
+meaning, grammar, technical accuracy, lawful reference authorization, or actual reviewer identity.
+
+## Record evidence and release status
+
+Use only `PASS`, `FAIL`, `NOT APPLICABLE`, or `REVIEW REQUIRED` for check results. Give every
+applicable checklist row its exact ID. Use only `YES`, `NO`, or `REVIEW REQUIRED` for technical
+meaning preservation. An applicable non-`PASS`, a missing or extra row, incomplete token coverage,
+an open register, a digest mismatch, or an invalid reviewer record blocks release.
+
+For ambiguity, source discrepancies, terminology decisions, safety traces, reviewers, and
+corrections, record stable IDs, source location or quotation, required authority, status,
+disposition evidence, date where applicable, and the bound artifact digest.
+
+Use only these final statuses:
 
 - `FULLY CHECKED — ASD-STE100 ISSUE 9 COMPLIANT`
 - `NOT RELEASED — COMPLIANCE CHECK FAILED`
@@ -136,7 +162,7 @@ Use only these final compliance statuses:
 - `NOT RELEASED — TECHNICAL REVIEW REQUIRED`
 - `DRAFT — HUMAN ASD-STE100 REVIEW REQUIRED`
 
-Use the fully checked status only after every gate passes. Otherwise, do not describe the text as
-compliant, verified, or checked. If a word, rule, exception, term, fact, or meaning cannot be
-verified, do not guess: identify what is unresolved, name the authority needed, block release, and
-give only a clearly marked draft when useful.
+Use the fully checked status only when the report derives every gate as `PASS` and both actual human
+reviewers approved the exact final digest. If a word, rule, exception, term, fact, meaning,
+authorization, or review cannot be verified, do not guess. Identify the unresolved item, name the
+authority needed, block release, and provide only a clearly marked draft when useful.

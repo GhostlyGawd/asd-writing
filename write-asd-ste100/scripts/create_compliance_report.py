@@ -235,6 +235,26 @@ def expected_check_ids(
     return expected
 
 
+def applicable_check_index(
+    checklist: dict[str, Any], content_types: list[str]
+) -> list[dict[str, Any]]:
+    """Return only the verified checklist index rows applicable to the content."""
+    expected = expected_check_ids(checklist, content_types)
+    selected = []
+    for section in ("rule_checks", "dictionary_checks"):
+        for item in checklist[section]:
+            if item["id"] in expected:
+                selected.append(
+                    {
+                        "id": item["id"],
+                        "check": item["check"],
+                        "source": item["source"],
+                        "applies_to": item["applies_to"],
+                    }
+                )
+    return selected
+
+
 def _resolve_artifact_path(path_value: str, base_dir: Path) -> Path:
     path = Path(path_value)
     if not path.is_absolute():
@@ -1312,6 +1332,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--emit-template", action="store_true")
     parser.add_argument("--verify-skill-root", type=Path)
     parser.add_argument("--compare-skill-root", type=Path)
+    parser.add_argument("--list-applicable-checks", action="store_true")
+    parser.add_argument("--checklist", type=Path)
+    parser.add_argument("--standard", type=Path)
+    parser.add_argument("--content-type", action="append", default=[])
     return parser.parse_args(argv)
 
 
@@ -1327,6 +1351,37 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(json.dumps(result, indent=2, ensure_ascii=False))
         return exit_code
+    if args.list_applicable_checks:
+        if args.checklist is None or args.standard is None or not args.content_type:
+            print(
+                "INPUT ERROR: --checklist, --standard, and at least one "
+                "--content-type are required.",
+                file=sys.stderr,
+            )
+            return 1
+        try:
+            checklist = load_data(args.checklist)
+            standard_sha = sha256_file(args.standard)
+            if checklist.get("standard", {}).get("sha256") != standard_sha:
+                raise InputError(
+                    "The standard digest does not match the checklist manifest."
+                )
+            selected = applicable_check_index(checklist, args.content_type)
+        except InputError as exc:
+            print(f"INPUT ERROR: {exc}", file=sys.stderr)
+            return 1
+        print(
+            json.dumps(
+                {
+                    "standard_sha256": standard_sha,
+                    "content_types": args.content_type,
+                    "applicable_checks": selected,
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        return 0
     if args.input is None:
         print("INPUT ERROR: an evidence file is required.", file=sys.stderr)
         return 1
