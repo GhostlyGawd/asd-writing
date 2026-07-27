@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import datetime as dt
 import hashlib
 import importlib.util
@@ -392,7 +391,7 @@ class TerminologyHardeningTests(unittest.TestCase):
             yaml.safe_load(self.factory.terminology.read_text(encoding="utf-8"))
         )
         text = "Inspect the cafe\u0301."
-        coverage = word_rows(text, {"café": "café"})
+        coverage = word_rows(text, {"café": "café"})
         result = terms.analyze_text(entries, text, coverage, "fuel")
         self.assertEqual("PASS", result["status"])
 
@@ -414,7 +413,7 @@ class TerminologyHardeningTests(unittest.TestCase):
             terms.validate_entries(data)
 
     def test_multi_line_phrase_and_unique_lines(self) -> None:
-        self.assertEqual([1], terms.occurrences("fuel\npump fuel pump", "fuel pump"))
+        self.assertEqual([1, 2], terms.occurrences("fuel\npump fuel pump", "fuel pump"))
 
     def test_human_markdown_is_escaped(self) -> None:
         rendered = terms.render_human(

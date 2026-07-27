@@ -1,8 +1,20 @@
-schema_version: 1
+schema_version: 2
 approval_status_values:
   - APPROVED
   - PENDING
   - REJECTED
+approved_part_of_speech_values:
+  - noun
+  - verb
+  - proper_noun
+  - abbreviation
+  - identifier
+term_type_values:
+  - technical_noun
+  - technical_verb
+  - proper_noun
+  - abbreviation
+  - identifier
 entry_schema:
   required_fields:
     - approved_term
@@ -16,10 +28,4 @@ entry_schema:
     - approval_status
     - approval_date
     - notes
-  term_type_values:
-    - technical_noun
-    - technical_verb
-    - proper_noun
-    - abbreviation
-    - identifier
 terms: []
