@@ -106,8 +106,10 @@ generation, use the exact status derived by the report script.
 
 In a blocked handoff, enumerate every absent required input. Explicitly state the content labels,
 candidate protected identifiers and values, and whether the supplied source is confirmed approved.
-State that the final source, output, and evidence digest must receive decisions from two actual
-human reviewers with different identifiers after all corrections.
+For each ambiguity, give a stable ID, the exact source quotation and location, each materially
+different meaning, the decision needed, and the specific authorized technical decision role.
+State that two actual human reviewers with different identifiers must approve the same exact final
+source, output, evidence bundle, and digest after all corrections.
 
 For long content, process stable source sections in manageable batches, but merge them into one
 ordered final output, one complete token ledger, and one applicable-check ledger. Reconcile

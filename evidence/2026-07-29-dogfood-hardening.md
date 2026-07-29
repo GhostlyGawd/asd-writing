@@ -85,3 +85,9 @@ The skill now applies the false-path check to `when`, `if`, `unless`, and
 equivalent triggers. It also requires every blocked handoff to enumerate all
 absent inputs, content labels, candidate protected content, source approval
 state, and the two distinct human decisions for the final digest.
+
+A third blind run enumerated the required inputs and both trigger false paths.
+Its handoff did not provide stable ambiguity IDs, source locations, explicit
+alternative meanings, or a specific decision role. It also requested reviewer
+decisions without explicitly requiring approval of the same final digest. The
+skill now requires those fields in every blocked ambiguity handoff.
