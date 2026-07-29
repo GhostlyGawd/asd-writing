@@ -640,6 +640,10 @@ class SkillContractTests(unittest.TestCase):
             "--format clean",
             "actual trained ASD-STE100 reviewer",
             "authorized technical reviewer",
+            "do not assemble an operational-looking procedure",
+            "use the exact status derived by the report script",
+            "write-verifiable-requirements",
+            "analyze-competing-hypotheses",
         ):
             self.assertIn(phrase, skill)
 

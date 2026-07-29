@@ -58,6 +58,12 @@ authorized decision needed, and set a `NOT RELEASED` status. For ambiguity, quot
 possible meanings, identify the required authority, and keep the item open. Preserve and flag
 possible source errors.
 
+If ambiguity changes an action, object, condition, endpoint, sequence, safety control, or mandatory
+meaning, do not assemble an operational-looking procedure with guessed ordering or bracketed
+substitutions. Return the unchanged source segment and isolated, non-executable authoring fragments
+with targeted resolution questions. Do not convert “wait until it cools” to “wait until it is
+cool” unless the technical source confirms that endpoint.
+
 Handle proprietary, personal, export-controlled, or safety-sensitive source material only in
 locations and tools approved by the organization. Do not upload, disclose, or retain it beyond the
 authorized workflow.
@@ -84,10 +90,27 @@ authorized workflow.
 11. Release only when every derived gate is `PASS`. Use `clean` only when the script emits the final
     text successfully.
 
+Use this status precedence when more than one gate is open: a failed language check; required
+technical decision or review; required ASD-STE100 human review; otherwise incomplete evidence or
+inputs. Before a report exists, use the incomplete status for missing required inputs. After report
+generation, use the exact status derived by the report script.
+
 For long content, process stable source sections in manageable batches, but merge them into one
 ordered final output, one complete token ledger, and one applicable-check ledger. Reconcile
 cross-section terminology, references, sequence, and protected values. Never release a partial
 batch as the complete document.
+
+## Route related work
+
+- Use `write-verifiable-requirements` first when ambiguity concerns requirement intent, allocation,
+  precedence, traceability, or acceptance criteria.
+- Use `analyze-competing-hypotheses` when ambiguity concerns competing factual or causal
+  explanations. Treat its judgments as assumptions or unknowns until the decision owner accepts
+  them.
+- Establish requirement intent before an ASD-STE100 rewrite. Protect normative keywords, values,
+  and conditions during the rewrite.
+- Rerun the requirements checker after an ASD-STE100 wording change. If both release claims are
+  required, bind each review to the same final text and revalidate both digests after every change.
 
 ## Run deterministic tools
 

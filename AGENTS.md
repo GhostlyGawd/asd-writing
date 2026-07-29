@@ -364,6 +364,12 @@ For each ambiguity:
 
 Do not use language simplification to hide a technical ambiguity.
 
+If ambiguity changes an action, object, condition, endpoint, sequence, safety control, or mandatory
+meaning, do not assemble an operational-looking procedure with guessed ordering or bracketed
+substitutions. Preserve the affected source segment, provide only isolated non-executable authoring
+fragments, and ask targeted resolution questions. Do not replace an unresolved process endpoint
+with a different state, such as changing “wait until it cools” to “wait until it is cool.”
+
 ## 15. Compliance evidence
 
 Create a structured compliance record.
@@ -437,6 +443,11 @@ Use only these status values:
 Use the fully compliant status only after all release gates pass.
 
 Do not use words such as `compliant`, `verified`, or `checked` in a final status when required checks are incomplete.
+
+When more than one gate is open, use this precedence: a failed language check; required technical
+decision or review; required ASD-STE100 human review; otherwise incomplete evidence or inputs.
+Before report generation, missing required inputs use the incomplete status. After report
+generation, use the exact status derived by the report script.
 
 ## 19. Human review
 
