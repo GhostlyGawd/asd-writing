@@ -77,3 +77,11 @@ The skill now requires explicit conditional-scope and false-path analysis when
 punctuation or sequence words permit different interpretations. The contract
 test pins this instruction. After this correction, all 56 tests, including the
 updated contract assertion, passed.
+
+A second blind run found the false path for an `if` clause but did not open the
+false path for an outer `when` trigger. Its blocked handoff also omitted some
+required-input details and the distinct, digest-bound human-review condition.
+The skill now applies the false-path check to `when`, `if`, `unless`, and
+equivalent triggers. It also requires every blocked handoff to enumerate all
+absent inputs, content labels, candidate protected content, source approval
+state, and the two distinct human decisions for the final digest.

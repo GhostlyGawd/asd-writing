@@ -65,6 +65,9 @@ with targeted resolution questions. Do not convert “wait until it cools” to 
 cool” unless the technical source confirms that endpoint. For each conditional clause, identify
 its exact scope and the required action when the condition is false. If punctuation or sequence
 words can put a later action inside or outside the condition, keep both interpretations open.
+Treat `when`, `if`, `unless`, and equivalent trigger clauses as conditions for this ambiguity
+check. If the source does not say what occurs when a trigger does not occur, keep that false path
+open when it can change whether or when the reader acts.
 
 Handle proprietary, personal, export-controlled, or safety-sensitive source material only in
 locations and tools approved by the organization. Do not upload, disclose, or retain it beyond the
@@ -100,6 +103,11 @@ Use this status precedence when more than one gate is open: a failed language ch
 technical decision or review; required ASD-STE100 human review; otherwise incomplete evidence or
 inputs. Before a report exists, use the incomplete status for missing required inputs. After report
 generation, use the exact status derived by the report script.
+
+In a blocked handoff, enumerate every absent required input. Explicitly state the content labels,
+candidate protected identifiers and values, and whether the supplied source is confirmed approved.
+State that the final source, output, and evidence digest must receive decisions from two actual
+human reviewers with different identifiers after all corrections.
 
 For long content, process stable source sections in manageable batches, but merge them into one
 ordered final output, one complete token ledger, and one applicable-check ledger. Reconcile
