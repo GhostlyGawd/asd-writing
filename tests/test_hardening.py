@@ -665,6 +665,8 @@ class SkillContractTests(unittest.TestCase):
             "actual trained ASD-STE100 reviewer",
             "authorized technical reviewer",
             "do not assemble an operational-looking procedure",
+            "required action when the condition is false",
+            "inside or outside the condition",
             "use the exact status derived by the report script",
             "write-verifiable-requirements",
             "analyze-competing-hypotheses",

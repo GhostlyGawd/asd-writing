@@ -62,7 +62,9 @@ If ambiguity changes an action, object, condition, endpoint, sequence, safety co
 meaning, do not assemble an operational-looking procedure with guessed ordering or bracketed
 substitutions. Return the unchanged source segment and isolated, non-executable authoring fragments
 with targeted resolution questions. Do not convert “wait until it cools” to “wait until it is
-cool” unless the technical source confirms that endpoint.
+cool” unless the technical source confirms that endpoint. For each conditional clause, identify
+its exact scope and the required action when the condition is false. If punctuation or sequence
+words can put a later action inside or outside the condition, keep both interpretations open.
 
 Handle proprietary, personal, export-controlled, or safety-sensitive source material only in
 locations and tools approved by the organization. Do not upload, disclose, or retain it beyond the

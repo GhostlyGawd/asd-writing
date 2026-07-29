@@ -65,3 +65,15 @@ Reviewed but unaffected:
   human decisions.
 - Atomicity applies to each destination file. No filesystem operation can make
   the JSON and Markdown pair one indivisible multi-file transaction.
+
+## Blind retest correction
+
+A fresh agent correctly blocked an ambiguous maintenance procedure and did not
+assemble guessed steps. An independent reviewer found one missed question:
+whether an action after a conditional clause was inside or outside that
+condition, and what action applied when the condition was false.
+
+The skill now requires explicit conditional-scope and false-path analysis when
+punctuation or sequence words permit different interpretations. The contract
+test pins this instruction. After this correction, all 56 tests, including the
+updated contract assertion, passed.
