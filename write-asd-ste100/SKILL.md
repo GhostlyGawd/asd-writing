@@ -76,7 +76,11 @@ authorized workflow.
 3. Write or rewrite without adding facts.
 4. Generate a complete fail-closed word ledger. For each token, verify its classification, basis,
    result, and location. For each dictionary word, verify meaning, part of speech, form, and
-   restrictions. For each project term, record the complete term and approval entry.
+   restrictions. For each project term, record the complete term and approval entry. Deduplicate
+   the token list to batch dictionary lookups, and open each applicable dictionary entry once per
+   batch. Then apply the verified entry to every occurrence and check each occurrence in context.
+   Batching reduces repeated reference reads only. It does not automate semantic approval, permit
+   skipped occurrences, or replace the complete word ledger.
 5. Get the hash-verified applicable-check index. Check every applicable rule for every sentence,
    paragraph, sequence, and safety item against the complete PDF.
 6. Compare source and output. Record substantive rewrite changes, technical integrity, protected
@@ -142,14 +146,20 @@ python "<SKILL_ROOT>/scripts/check_project_terms.py" --terms "PROJECT-TERMINOLOG
 Run the release report:
 
 ```text
-python "<SKILL_ROOT>/scripts/create_compliance_report.py" "EVIDENCE.yaml" --format both
+python "<SKILL_ROOT>/scripts/create_compliance_report.py" "EVIDENCE.yaml" --format both --output-dir "REPORTS"
 ```
 
 The report rejects caller-supplied release gates and derives all gates from exact checklist
 coverage, token coverage, file and text digests, terminology results, technical-integrity evidence,
 unresolved registers, safety traces, corrections, and revision-bound reviewers. Its digest binds
 review to the source, output, references, and evidence. Any evidence change invalidates prior
-reviewer records.
+reviewer records. The output directory receives digest-qualified JSON and Markdown files. The
+script refuses to replace either file unless the user supplies `--overwrite`. It stages each file
+in the destination directory before the atomic write.
+
+Read `state_code`, `operation_succeeded`, and `release_permitted` from the JSON report. A completed
+report operation can still block release. Do not infer release permission from the process exit
+code, from `operation_succeeded`, or from the presence of report files.
 
 For clean output, run:
 

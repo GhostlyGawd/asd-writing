@@ -6,8 +6,10 @@ import argparse
 import datetime as dt
 import hashlib
 import json
+import os
 import re
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -37,6 +39,13 @@ FAILED_STATUS = "NOT RELEASED — COMPLIANCE CHECK FAILED"
 INCOMPLETE_STATUS = "NOT RELEASED — COMPLIANCE CHECK INCOMPLETE"
 TECHNICAL_REVIEW_STATUS = "NOT RELEASED — TECHNICAL REVIEW REQUIRED"
 LANGUAGE_REVIEW_STATUS = "DRAFT — HUMAN ASD-STE100 REVIEW REQUIRED"
+STATE_CODES = {
+    FULL_STATUS: "RELEASED",
+    FAILED_STATUS: "CHECK_FAILED",
+    INCOMPLETE_STATUS: "CHECK_INCOMPLETE",
+    TECHNICAL_REVIEW_STATUS: "TECHNICAL_REVIEW_REQUIRED",
+    LANGUAGE_REVIEW_STATUS: "HUMAN_ASD_REVIEW_REQUIRED",
+}
 TASK_MODES = {"write", "rewrite", "review"}
 OUTPUT_MODES = {"report", "teaching", "clean"}
 CONTENT_TYPES = {
@@ -733,6 +742,9 @@ def _invalid_report(message: str) -> tuple[dict[str, Any], int]:
             "establish reference authorization, or perform technical review."
         ),
         "status": INCOMPLETE_STATUS,
+        "state_code": "INPUT_ERROR",
+        "operation_succeeded": False,
+        "release_permitted": False,
         "released": False,
         "clean_output_permitted": False,
         "review_artifact_sha256": None,
@@ -1061,6 +1073,9 @@ def _build_report(
             "establish reference authorization, or perform technical review."
         ),
         "status": status,
+        "state_code": STATE_CODES[status],
+        "operation_succeeded": True,
+        "release_permitted": released,
         "released": released,
         "clean_output_permitted": clean_output_permitted,
         "review_artifact_sha256": artifact_digest,
@@ -1125,6 +1140,15 @@ def render_human(report: dict[str, Any]) -> str:
         "# ASD-STE100 Compliance Report",
         "",
         f"Status: {report['status']}",
+        f"State code: {report['state_code']}",
+        (
+            "Operation succeeded: "
+            f"{'YES' if report['operation_succeeded'] else 'NO'}"
+        ),
+        (
+            "Release permitted: "
+            f"{'YES' if report['release_permitted'] else 'NO'}"
+        ),
         f"Released: {'YES' if report['released'] else 'NO'}",
         f"Clean output permitted: {'YES' if report['clean_output_permitted'] else 'NO'}",
         f"Review artifact SHA-256: {report.get('review_artifact_sha256') or '—'}",
@@ -1242,6 +1266,73 @@ def render_human(report: dict[str, Any]) -> str:
         lines.extend(["", "## Blockers", ""])
         lines.extend(f"- {blocker}" for blocker in report["blockers"])
     return "\n".join(lines)
+
+
+def write_report_files(
+    report: dict[str, Any], output_dir: Path, *, overwrite: bool = False
+) -> list[Path]:
+    """Atomically write digest-qualified JSON and Markdown report files."""
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise InputError(f"Cannot create output directory {output_dir}: {exc}") from exc
+    if not output_dir.is_dir():
+        raise InputError(f"Output path is not a directory: {output_dir}")
+
+    safe_report = _json_safe(report)
+    json_text = json.dumps(safe_report, indent=2, ensure_ascii=False) + "\n"
+    report_digest = report.get("review_artifact_sha256") or sha256_text(json_text)
+    name = f"asd-ste100-report-{report_digest[:12]}"
+    targets = [
+        (output_dir / f"{name}.json", json_text),
+        (output_dir / f"{name}.md", render_human(report) + "\n"),
+    ]
+    existing = [target for target, _ in targets if target.exists()]
+    if existing and not overwrite:
+        paths = ", ".join(str(path) for path in existing)
+        raise InputError(
+            f"Refusing to overwrite existing report file(s): {paths}. "
+            "Use --overwrite only after you verify the targets."
+        )
+
+    staged: list[tuple[Path, Path]] = []
+    created: list[Path] = []
+    try:
+        for target, content in targets:
+            descriptor, temporary_name = tempfile.mkstemp(
+                dir=output_dir,
+                prefix=f".{target.name}.",
+                suffix=".tmp",
+            )
+            temporary = Path(temporary_name)
+            staged.append((temporary, target))
+            with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
+                stream.write(content)
+                stream.flush()
+                os.fsync(stream.fileno())
+        for temporary, target in staged:
+            if overwrite:
+                os.replace(temporary, target)
+            else:
+                os.link(temporary, target)
+                created.append(target)
+    except OSError as exc:
+        if not overwrite:
+            for target in created:
+                try:
+                    target.unlink()
+                except OSError:
+                    pass
+        raise InputError(f"Cannot write report files in {output_dir}: {exc}") from exc
+    finally:
+        for temporary, _ in staged:
+            try:
+                temporary.unlink()
+            except FileNotFoundError:
+                pass
+            except OSError:
+                pass
+    return [target for target, _ in targets]
 
 
 def evidence_template() -> dict[str, Any]:
@@ -1365,12 +1456,31 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--checklist", type=Path)
     parser.add_argument("--standard", type=Path)
     parser.add_argument("--content-type", action="append", default=[])
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        help="Write digest-qualified JSON and Markdown reports atomically.",
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Replace report files that have the same content digest.",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     """Run report validation or skill-root verification."""
     args = parse_args(argv)
+    if args.overwrite and args.output_dir is None:
+        print("INPUT ERROR: --overwrite requires --output-dir.", file=sys.stderr)
+        return 1
+    if args.output_dir is not None and args.input is None:
+        print(
+            "INPUT ERROR: --output-dir is available only for an evidence report.",
+            file=sys.stderr,
+        )
+        return 1
     if args.emit_template:
         print(yaml.safe_dump(evidence_template(), sort_keys=False, allow_unicode=True))
         return 0
@@ -1420,6 +1530,13 @@ def main(argv: list[str] | None = None) -> int:
         report, exit_code = _invalid_report(str(exc))
     else:
         report, exit_code = build_report(data, args.input.parent)
+
+    if args.output_dir is not None:
+        try:
+            write_report_files(report, args.output_dir, overwrite=args.overwrite)
+        except InputError as exc:
+            print(f"INPUT ERROR: {exc}", file=sys.stderr)
+            return 1
 
     if args.format == "clean":
         if report["clean_output_permitted"]:

@@ -587,6 +587,27 @@ class ComplianceHardeningTests(unittest.TestCase):
         rendered = reporter.render_human(result)
         self.assertIn("## Reviewer records", rendered)
         self.assertIn("## Unresolved items", rendered)
+        self.assertIn("State code: RELEASED", rendered)
+        self.assertIn("Operation succeeded: YES", rendered)
+        self.assertIn("Release permitted: YES", rendered)
+
+    def test_machine_state_separates_operation_from_release(self) -> None:
+        released, _ = reporter.build_report(self.factory.evidence())
+        self.assertEqual("RELEASED", released["state_code"])
+        self.assertTrue(released["operation_succeeded"])
+        self.assertTrue(released["release_permitted"])
+
+        blocked_evidence = self.factory.evidence()
+        blocked_evidence["reviewers"] = []
+        blocked, _ = reporter.build_report(blocked_evidence)
+        self.assertTrue(blocked["operation_succeeded"])
+        self.assertFalse(blocked["release_permitted"])
+        self.assertFalse(blocked["released"])
+
+        invalid, _ = reporter.build_report({"schema_version": 1})
+        self.assertEqual("INPUT_ERROR", invalid["state_code"])
+        self.assertFalse(invalid["operation_succeeded"])
+        self.assertFalse(invalid["release_permitted"])
 
     def test_applicable_check_index_includes_safety_procedure_rule(self) -> None:
         checklist = yaml.safe_load(
@@ -638,6 +659,9 @@ class SkillContractTests(unittest.TestCase):
             "--list-applicable-checks",
             "--verify-skill-root",
             "--format clean",
+            "--output-dir",
+            "state_code",
+            "Do not infer release permission",
             "actual trained ASD-STE100 reviewer",
             "authorized technical reviewer",
             "do not assemble an operational-looking procedure",
@@ -658,6 +682,14 @@ class SkillContractTests(unittest.TestCase):
         result, code = reporter.verify_skill_root(ROOT / "write-asd-ste100")
         self.assertEqual(0, code)
         self.assertEqual("PASS", result["status"])
+
+    def test_agent_metadata_allows_explicitly_routed_invocation(self) -> None:
+        metadata = yaml.safe_load(
+            (ROOT / "write-asd-ste100" / "agents" / "openai.yaml").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertIs(metadata["policy"]["allow_implicit_invocation"], True)
 
 
 class CLITests(unittest.TestCase):
@@ -712,6 +744,68 @@ class CLITests(unittest.TestCase):
         )
         self.assertEqual(1, result.returncode)
         self.assertNotIn("Traceback", result.stderr + result.stdout)
+
+    def test_report_output_directory_is_digest_qualified_and_fail_closed(self) -> None:
+        self.factory.standard = (
+            ROOT
+            / "write-asd-ste100"
+            / "references"
+            / "asd-ste100-issue-9.pdf"
+        )
+        self.factory.checklist = (
+            ROOT
+            / "write-asd-ste100"
+            / "references"
+            / "compliance-checklist.yaml"
+        )
+        reporter.TRUSTED_SKILL_ROOT = ROOT / "write-asd-ste100"
+        evidence = self.factory.evidence()
+        path = self.factory.root / "evidence.yaml"
+        path.write_text(
+            yaml.safe_dump(evidence, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        output_dir = self.factory.root / "reports"
+
+        first = self.run_cli(
+            "create_compliance_report.py",
+            str(path),
+            "--format",
+            "json",
+            "--output-dir",
+            str(output_dir),
+        )
+        self.assertEqual(0, first.returncode, first.stderr)
+        payload = json.loads(first.stdout)
+        digest = payload["review_artifact_sha256"][:12]
+        json_path = output_dir / f"asd-ste100-report-{digest}.json"
+        markdown_path = output_dir / f"asd-ste100-report-{digest}.md"
+        self.assertTrue(json_path.is_file())
+        self.assertTrue(markdown_path.is_file())
+        self.assertEqual(payload, json.loads(json_path.read_text(encoding="utf-8")))
+        self.assertFalse(list(output_dir.glob("*.tmp")))
+
+        refused = self.run_cli(
+            "create_compliance_report.py",
+            str(path),
+            "--format",
+            "json",
+            "--output-dir",
+            str(output_dir),
+        )
+        self.assertEqual(1, refused.returncode)
+        self.assertIn("Refusing to overwrite", refused.stderr)
+
+        replaced = self.run_cli(
+            "create_compliance_report.py",
+            str(path),
+            "--format",
+            "json",
+            "--output-dir",
+            str(output_dir),
+            "--overwrite",
+        )
+        self.assertEqual(0, replaced.returncode, replaced.stderr)
 
     def test_terminology_cli_blocks_missing_coverage(self) -> None:
         text_path = self.factory.root / "text.txt"

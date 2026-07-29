@@ -73,6 +73,15 @@ Generate a fail-closed evidence starter, complete word ledger, and applicable-ch
 the two bundled scripts. See `write-asd-ste100/SKILL.md` for the exact commands and release
 workflow.
 
+For a durable audit artifact, add `--output-dir <REPORTS>` to the report command. The command writes
+digest-qualified JSON and Markdown files through atomic sibling-file writes. It refuses to replace
+an existing report unless `--overwrite` is explicit.
+
+Use the JSON fields `state_code`, `operation_succeeded`, and `release_permitted` for agent
+orchestration. `operation_succeeded` means that report validation completed. It does not authorize
+release. Use `release_permitted` for that decision, and do not infer release from the process exit
+code or from the presence of a report file.
+
 ## Security, privacy, and limitations
 
 - Keep proprietary, export-controlled, personal, customer, and safety-sensitive source material in
